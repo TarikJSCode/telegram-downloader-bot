@@ -16,17 +16,21 @@ logging.basicConfig(
 )
 
 # Функція завантаження відео
-def download_video(url: str, output_path: str = "video.mp4") -> str:
+def download_video(url: str, output_path: str = "video.mp4", cookies_file: str = None) -> str:
     ydl_opts = {
         'outtmpl': output_path,
         'format': 'mp4',
         'quiet': True,
-        'cookiefile': 'instagram_cookies.txt', 
-        'cookiefile': 'pinterest_cookies.txt',# Файл cookies для Instagram
     }
+
+    if cookies_file and os.path.exists(cookies_file):
+        ydl_opts['cookiefile'] = cookies_file
+
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
+
     return output_path
+
 
 # Обробник повідомлень
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
