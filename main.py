@@ -15,11 +15,11 @@ import threading
 
 # === Налаштування ===
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
-RENDER_HOST = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 WEBHOOK_PATH = f"/{BOT_TOKEN}"
-WEBHOOK_URL = f"https://{RENDER_HOST}{WEBHOOK_PATH}"
+WEBHOOK_URL = f"https://telegram-downloader-bot.fly.dev{WEBHOOK_PATH}"
 DOWNLOAD_DIR = "downloads"
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+
 
 VALID_SOURCES = [
     'tiktok.com', 'instagram.com', 'facebook.com', 'fb.watch', 'pinterest.com', 'pin.it'
