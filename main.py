@@ -125,7 +125,9 @@ app.add_handler(CallbackQueryHandler(button_handler))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
 # === Flask запуск окремо ===
-threading.Thread(target=lambda: flask_app.run(host="0.0.0.0", port=8080)).start()
+PORT = int(os.environ.get("PORT", 8080))
+threading.Thread(target=lambda: flask_app.run(host="0.0.0.0", port=PORT)).start()
+
 
 # === Webhook запуск ===
 import asyncio
