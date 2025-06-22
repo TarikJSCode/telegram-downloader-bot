@@ -21,7 +21,8 @@ def download_video(url: str, output_path: str = "video.mp4") -> str:
         'outtmpl': output_path,
         'format': 'mp4',
         'quiet': True,
-        'cookiefile': 'cookies.txt',  # Файл cookies для Instagram
+        'cookiefile': 'instagram_cookies.txt', 
+        'cookiefile': 'pinterest_cookies.txt',# Файл cookies для Instagram
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
