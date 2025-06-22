@@ -3,8 +3,7 @@ import requests
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, CallbackQueryHandler, filters
 from yt_dlp import YoutubeDL
-from keep_alive import keep_alive
-keep_alive()
+
 
 BOT_TOKEN = os.environ['BOT_TOKEN']
 DOWNLOAD_DIR = "downloads"
