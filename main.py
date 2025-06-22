@@ -1,5 +1,5 @@
+# main.py
 import os
-import requests
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder,
@@ -10,35 +10,16 @@ from telegram.ext import (
     filters
 )
 from yt_dlp import YoutubeDL
-from flask import Flask, request
-import threading
+import requests
 
-# === Налаштування ===
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
-WEBHOOK_PATH = f"/{BOT_TOKEN}"
-WEBHOOK_URL = f"https://telegram-downloader-bot.fly.dev{WEBHOOK_PATH}"
 DOWNLOAD_DIR = "downloads"
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
-
 
 VALID_SOURCES = [
     'tiktok.com', 'instagram.com', 'facebook.com', 'fb.watch', 'pinterest.com', 'pin.it'
 ]
 
-# === Flask для webhook ===
-flask_app = Flask(__name__)
-
-@flask_app.route("/", methods=["GET"])
-def index():
-    return "Bot is alive!"
-
-@flask_app.route(WEBHOOK_PATH, methods=["POST"])
-def webhook():
-    update = Update.de_json(request.get_json(force=True), app.bot)
-    app.update_queue.put_nowait(update)
-    return "ok", 200
-
-# === Хендлери ===
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("\ud83d\udcc5 Як скачати відео", callback_data="how_to")],
@@ -66,14 +47,11 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text.strip()
-    print(f"[LOG] Отримано повідомлення: {message_text}")
-
     if "pin.it/" in message_text:
         try:
             response = requests.head(message_text, allow_redirects=True)
             message_text = response.url
-        except Exception as e:
-            print(f"[ERROR] Розширення pin.it: {e}")
+        except:
             return
 
     if not any(src in message_text for src in VALID_SOURCES):
@@ -82,22 +60,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("⏳ Завантажую відео, зачекай трохи...")
 
     try:
-        cookie_file = None
-        if 'instagram.com' in message_text:
-            cookie_file = 'instagram_cookies.txt'
-        elif 'pinterest.com' in message_text:
-            cookie_file = 'pinterest_cookies.txt'
-
         ydl_opts = {
             'outtmpl': f'{DOWNLOAD_DIR}/%(title).70s.%(ext)s',
             'format': 'mp4',
             'quiet': True,
             'noplaylist': True,
         }
-
-        if cookie_file:
-            ydl_opts['cookiefile'] = cookie_file
-
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(message_text, download=True)
             filename = ydl.prepare_filename(info)
@@ -111,22 +79,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         os.remove(filename)
 
     except Exception as e:
-        print(f"[ERROR] Завантаження відео: {e}")
-        await update.message.reply_text("❌ Сталася помилка при завантаженні відео.")
+        print(f"[ERROR] {e}")
+        await update.message.reply_text("❌ Помилка при завантаженні відео.")
 
-# === Telegram Application ===
-app = ApplicationBuilder().token(BOT_TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CallbackQueryHandler(button_handler))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-# === Flask запуск окремо ===
-threading.Thread(target=lambda: flask_app.run(host="0.0.0.0", port=8080)).start()
-
-# === Webhook запуск ===
-import asyncio
-async def setup():
-    await app.bot.set_webhook(WEBHOOK_URL)
-    print(f"✅ Webhook встановлено: {WEBHOOK_URL}")
-
-asyncio.run(setup()) ось код
+if __name__ == '__main__':
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(button_handler))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    print("✅ Бот запущено через polling")
+    app.run_polling()
