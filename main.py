@@ -33,9 +33,13 @@ def index():
     return "Bot is alive!"
 
 @flask_app.route(WEBHOOK_PATH, methods=["POST"])
+from telegram.ext import Dispatcher
+
+@flask_app.route(WEBHOOK_PATH, methods=["POST"])
 def webhook():
-    update = Update.de_json(request.get_json(force=True), app.bot)
-    app.update_queue.put_nowait(update)
+    data = request.get_json(force=True)
+    update = Update.de_json(data, app.bot)
+    asyncio.run(app.process_update(update))
     return "ok", 200
 
 # === Хендлери ===
