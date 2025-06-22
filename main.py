@@ -4,6 +4,10 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, fil
 import yt_dlp
 import os
 import logging
+if __name__ == '__main__':
+    from keep_alive import keep_alive
+    keep_alive()  # Це запускає Flask на 0.0.0.0:8080
+
 
 # Логування
 logging.basicConfig(
