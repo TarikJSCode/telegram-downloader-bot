@@ -1,6 +1,5 @@
 import os
 import requests
-import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder,
@@ -35,21 +34,20 @@ def index():
 
 @flask_app.route(WEBHOOK_PATH, methods=["POST"])
 def webhook():
-    data = request.get_json(force=True)
-    update = Update.de_json(data, app.bot)
-    asyncio.run(app.process_update(update))
+    update = Update.de_json(request.get_json(force=True), app.bot)
+    app.update_queue.put_nowait(update)
     return "ok", 200
 
 # === Хендлери ===
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
-        [InlineKeyboardButton("📅 Як скачати відео", callback_data="how_to")],
-        [InlineKeyboardButton("➕ Додати мене в чат", url="https://t.me/videomoment_bot?startgroup=true")],
-        [InlineKeyboardButton("📬 Звʼязок з автором", url="https://t.me/shadow_tar")],
+        [InlineKeyboardButton("\ud83d\udcc5 Як скачати відео", callback_data="how_to")],
+        [InlineKeyboardButton("\u2795 Додати мене в чат", url="https://t.me/videomoment_bot?startgroup=true")],
+        [InlineKeyboardButton("\ud83d\udcec Звʼязок з автором", url="https://t.me/shadow_tar")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(
-        "👋 Привіт! Я допоможу тобі скачати відео з TikTok, Instagram, Facebook або Pinterest.\n\nНатисни кнопку нижче:",
+        "\ud83d\udc4b Привіт! Я допоможу тобі скачати відео з TikTok, Instagram, Facebook або Pinterest.\n\nНатисни кнопку нижче:",
         reply_markup=reply_markup
     )
 
@@ -58,7 +56,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     if query.data == "how_to":
         await query.edit_message_text(
-            "📅 *Як скачати відео:*\n\n"
+            "\ud83d\udcc5 *Як скачати відео:*\n\n"
             "1. Знайди відео в TikTok, Instagram, Facebook або Pinterest\n"
             "2. Скопіюй посилання\n"
             "3. Надішли мені в цей чат\n"
@@ -123,12 +121,12 @@ app.add_handler(CallbackQueryHandler(button_handler))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
 # === Flask запуск окремо ===
-PORT = int(os.environ.get("PORT", 8080))
-threading.Thread(target=lambda: flask_app.run(host="0.0.0.0", port=PORT)).start()
+threading.Thread(target=lambda: flask_app.run(host="0.0.0.0", port=8080)).start()
 
 # === Webhook запуск ===
+import asyncio
 async def setup():
     await app.bot.set_webhook(WEBHOOK_URL)
     print(f"✅ Webhook встановлено: {WEBHOOK_URL}")
 
-asyncio.run(setup())
+asyncio.run(setup()) ось код
