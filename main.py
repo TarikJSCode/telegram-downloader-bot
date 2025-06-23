@@ -1,15 +1,12 @@
-
-import os
-import re
-import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import yt_dlp
-from dotenv import load_dotenv
+import os
+import logging
+if __name__ == '__main__':
+    from keep_alive import keep_alive
+    keep_alive()  # Це запускає Flask на 0.0.0.0:8080
 
-# Завантаження токена з .env
-load_dotenv()
-TOKEN = os.getenv("BOT_TOKEN")
 
 # Логування
 logging.basicConfig(
@@ -33,12 +30,11 @@ def download_video(url: str, output_path: str = "video.mp4", cookies_file: str =
 
     return output_path
 
+
 # Обробник повідомлень
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text.strip()
-    
-    # Перевірка наявності URL-адреси
-    if re.match(r'https?://(www\.)?(tiktok\.com|instagram\.com)/', text):
+    text = update.message.text
+    if "tiktok.com" in text or "instagram.com" in text:
         await update.message.reply_text("⏳ Зачекайте, йде завантаження відео...")
 
         try:
@@ -48,13 +44,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             await update.message.reply_text(f"❌ Сталася помилка:\n{e}")
     else:
-        await update.message.reply_text("⚠️ Будь ласка, надішліть дійсну URL-адресу на відео з TikTok або Instagram.")
+        await update.message.reply_text("Будь ласка, надішліть посилання на відео з TikTok або Instagram.")
 
 # Запуск бота
 if __name__ == '__main__':
+    TOKEN = os.getenv("BOT_TOKEN")
     app = ApplicationBuilder().token(TOKEN).build()
     
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    print("🤖 Бот запущено...")
-    app.run_polling()
+    print("Bot is running...")
+    app.run_polling() 
